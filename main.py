@@ -65,10 +65,35 @@ class Generic_algorithm:
         idx1 = self.rng.integers(low=0, high=self.size_selection, size=n_children)
         shift = self.rng.integers(low=1, high=self.size_selection - 1, size=n_children)
         idx2 = (idx1 + shift) % self.size_selection
+        all_points = np.arange(self.count_tasks)[np.newaxis]
+
+
+        slice_points = self.rng.integers(low=1, high=self.count_tasks - 1, size=(self.k_point, n_children))
+        slice_points.sort(axis=0)
+        mask = [False for i in range(self.count_tasks)]
+        for i, slice_point in enumerate(slice_points):
+            if i == 0:
+                mask = np.logical_or(mask, np.logical_and(all_points >= 0, all_points < slice_point[:, np.newaxis]))
+            elif i == slice_points.shape[0] - 1:
+                if i % 2 == 1:
+                    continue
+                mask = np.logical_or(mask, np.logical_and(all_points > slice_point[:, np.newaxis], all_points < self.count_tasks))
+            else:
+                if i % 2 == 1:
+                    continue
+                mask = np.logical_or(mask, np.logical_and(all_points > slice_points[i][:, np.newaxis],  all_points < slice_points[i+1][:, np.newaxis]))
+
+
 
         slice_point = self.rng.integers(low=1, high=self.count_tasks - 1, size=n_children)
+        slice_point1 = self.rng.integers(low=1, high=self.count_tasks - 1, size=n_children)
+        slice_point2 = self.rng.integers(low=1, high=self.count_tasks - 1, size=n_children)
+        for i in range(slice_point1.size):
+            slice_point1[i] = min(slice_point1[i], slice_point2[i])
+            slice_point2[i] = max(slice_point1[i], slice_point2[i])
+        a = np.logical_and(all_points > slice_point1[:, np.newaxis], all_points < slice_point2[:, np.newaxis])
         self.new_generation = np.where(
-            np.arange(self.count_tasks)[np.newaxis] < slice_point[:, np.newaxis], # (1, max_len_individual) < (n_children, 1) => (n_children, max_len_individual)
+            mask, # (1, max_len_individual) < (n_children, 1) => (n_children, max_len_individual)
             self.selected_population[idx1],
             self.selected_population[idx2]
         )
@@ -132,8 +157,8 @@ for i in range(m):
     peoples_coeff.append(list(map(float, fin.readline().split())))
 #print(peoples_coeff)
 
-ga = Generic_algorithm(tasks, n, m, 150, times, peoples_coeff, 40, 0.3, 0.2, 100)
-for i in range(2000):
+ga = Generic_algorithm(tasks, n, m, 200, times, peoples_coeff, 60, 0.3, 0.2, 100)
+for i in range(1000):
     print(i)
     ga.step()
 print(ga.population[0] + 1)
