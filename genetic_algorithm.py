@@ -80,9 +80,14 @@ class Generic_algorithm:
         shift = self._rng.integers(low=1, high=self.selection_size - 1, size=n_children)
         idx2 = (idx1 + shift) % self.selection_size
 
-
-        slice_points = self._rng.integers(low=1, high=self.count_tasks - 1, size=(self.k_point, n_children))
+        slice_points = []
+        arr = np.arange(1, self.count_tasks - 1)
+        for i in range(n_children):
+            points = self._rng.choice(arr, self.k_point, replace=False)
+            slice_points.append(points)
+        slice_points = np.array(slice_points).T
         slice_points.sort(axis=0)
+
         mask = [False for i in range(self.count_tasks)]
         all_points = np.arange(self.count_tasks)[np.newaxis]
 
@@ -90,14 +95,15 @@ class Generic_algorithm:
             if i % 2 == 1:
                 continue
             if i == 0:
-                mask = np.logical_or(mask, np.logical_and(all_points >= 0, all_points < slice_point[:, np.newaxis]))
+                mask = np.logical_or(mask, np.logical_and(all_points >= 0, all_points < slice_points[i][:, np.newaxis]))
             elif i == slice_points.shape[0] - 1:
-                mask = np.logical_or(mask, np.logical_and(all_points > slice_point[:, np.newaxis], all_points < self.count_tasks))
+                print(slice_points[i][:, np.newaxis])
+                mask = np.logical_or(mask, np.logical_and(all_points > slice_points[i][:, np.newaxis], all_points < self.count_tasks))
             else:
                 mask = np.logical_or(mask, np.logical_and(all_points > slice_points[i][:, np.newaxis],  all_points < slice_points[i+1][:, np.newaxis]))
 
         self._new_generation = np.where(
-            mask, # (1, max_len_individual) < (n_children, 1) => (n_children, max_len_individual)
+            mask,
             self._selected_population[idx1],
             self._selected_population[idx2]
         )
