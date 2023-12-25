@@ -43,32 +43,8 @@ class Generic_algorithm:
 
         return ret_score
 
-    def fintess_total_time(self):
-        ret_score = []
-        for individual in self._population:
-            temp_score = []
-            k = 0
-            enginer_tasks_sums = {}
-            for i, enj in enumerate(individual):
-                if k <= self.count_engineer:
-                    if enj in enginer_tasks_sums:
-                        enginer_tasks_sums[enj] += self.time_array[i] * self.coeff_array[enj][self.tasks_levels[i] - 1]
-                    else:
-                        enginer_tasks_sums[enj] = self.time_array[i] * self.coeff_array[enj][self.tasks_levels[i] - 1]
-                    k += 1
-                if k == self.count_engineer or i == len(individual) - 1:
-                    temp_score.append(enginer_tasks_sums[max(enginer_tasks_sums, key=enginer_tasks_sums.get)])
-                    k = 0
-                    enginer_tasks_sums.clear()
-            ret_score.append(sum(temp_score))
-
-        return ret_score
-
     def fitness(self):
-        if self.fitness_by_total_time:
-            return self.fintess_total_time()
-        else:
-            return self.fitness_max_time_by_engineer()
+        return self.fitness_max_time_by_engineer()
 
     def selection(self):
         self._selected_population = self._population[np.argsort(self.fitness())][:self.selection_size]
@@ -92,6 +68,7 @@ class Generic_algorithm:
         all_points = np.arange(self.count_tasks)[np.newaxis]
 
         for i, slice_point in enumerate(slice_points):
+            print(slice_point.size)
             if i % 2 == 1:
                 continue
             if i == 0:
