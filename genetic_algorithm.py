@@ -81,9 +81,9 @@ class Generic_algorithm:
         idx2 = (idx1 + shift) % self.selection_size
 
         slice_points = []
-        arr = np.arange(1, self.count_tasks - 1)
+        possible_values = np.arange(1, self.count_tasks - 1)
         for i in range(n_children):
-            points = self._rng.choice(arr, self.k_point, replace=False)
+            points = self._rng.choice(possible_values, self.k_point, replace=False)
             slice_points.append(points)
         slice_points = np.array(slice_points).T
         slice_points.sort(axis=0)
